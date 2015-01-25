@@ -13,6 +13,8 @@ public class lolili : MonoBehaviour {
         mt = renderer.material.mainTexture as MovieTexture;
         audio.clip = mt.audioClip;
         duration = mt.duration;
+      //  mt.Stop();
+      //  mt.Play();
 	}
 	
 	// Update is called once per frame
@@ -20,16 +22,23 @@ public class lolili : MonoBehaviour {
 	
 	}
 
+    public void InitLeBordel()
+    {
+        once = false;
+        mt = renderer.material.mainTexture as MovieTexture;
+        audio.clip = mt.audioClip;
+        duration = mt.duration;
+    }
+
     public void Play()
     {
-        if (mt.isReadyToPlay)
-        {
-
+        //if (mt.isReadyToPlay)
+        //{
             mt.Play();
             
             audio.Play();
             once = true;
-        }
+      //  }
     }
 
     public void Stop()

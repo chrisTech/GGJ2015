@@ -31,7 +31,12 @@ public class GameManager : MonoBehaviour {
 
     public Animator kissBarbieAnimator = null;
     public Animator outRunAnimator = null;
+    public Animator bigFireAnimator = null;
+    public Animator ghostBusterAnimator = null;
+    public Animator snakeAnimator = null;
 
+    public SpriteRenderer Monster;
+    public SpriteRenderer Gremelins;
 
     public  void Awake()
     {
@@ -261,8 +266,11 @@ public class GameManager : MonoBehaviour {
         {
             if (currentLevel == 0)
             {
+               
                 VideoFenetre.SetActive(true);
                 var lol = VideoFenetre.GetComponent<lolili>();
+                lol.InitLeBordel();
+              
                 if (lol.duration != 0 && !lol.once)
                 {
                     Destroy(Player);
@@ -284,7 +292,10 @@ public class GameManager : MonoBehaviour {
             }
             else if (currentLevel == 3)
             {
-
+                ghostBusterAnimator.SetBool("CalledGhostBuster", true);
+                Monster.enabled = false;
+                Invoke("DisableGhostBuster", 3.5f);
+                Invoke("GoToNextLevel", 3.8f);
             }
             else if (currentLevel == 4)
             {
@@ -355,11 +366,13 @@ public class GameManager : MonoBehaviour {
             }
             else if (currentLevel == 3)
             {
-
+                bigFireAnimator.SetBool("OnFire", true);
+                Invoke("RestartGame", 3f);
             }
             else if (currentLevel == 4)
             {
-
+                snakeAnimator.SetBool("ShowSnake", true);
+                Invoke("RestartGame", 3f);
             }
             else if (currentLevel == 5)
             {
@@ -381,7 +394,7 @@ public class GameManager : MonoBehaviour {
             Debug.Log("FUCK !!! You Lose");
             VideoEnding.SetActive(true);
             var lol = VideoEnding.GetComponent<lolili>();
-
+            lol.InitLeBordel();
             if (lol.duration != 0 && !lol.once)
             {
                 Destroy(Player);
@@ -401,6 +414,12 @@ public class GameManager : MonoBehaviour {
         kissBarbieAnimator.SetBool("Kissing", false);
     }
 
+    private void DisableGhostBuster()
+    {
+        ghostBusterAnimator.SetBool("CalledGhostBuster", false);
+    }
+
+   
     public void RestartGame()
     {
         Application.LoadLevel("main");
