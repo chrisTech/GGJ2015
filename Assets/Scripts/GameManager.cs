@@ -10,6 +10,10 @@ public class GameManager : MonoBehaviour {
     public Canvas MenuCanvas;
     public Canvas GameCanvas;
 
+    public GameObject TooLateObject = null;
+
+    public GameObject GameOverObj = null;
+    
     public List<Transform> Levels;
 
     public int currentLevel = 0;
@@ -34,9 +38,19 @@ public class GameManager : MonoBehaviour {
     public Animator bigFireAnimator = null;
     public Animator ghostBusterAnimator = null;
     public Animator snakeAnimator = null;
+    public Animator kameameaAnimator = null;
+    public Animator boomAnimator = null;
+    public Animator barbitchAnimator = null;
 
     public SpriteRenderer Monster;
     public SpriteRenderer Gremelins;
+
+    public List<SpriteRenderer> MenuSprite = new List<SpriteRenderer>();
+
+    public List<GameObject> multipleGremlins = new List<GameObject>();
+    public List<GameObject> multipleMonkeys = new List<GameObject>();
+
+    public GameObject LooserObj = null;
 
     public  void Awake()
     {
@@ -49,15 +63,23 @@ public class GameManager : MonoBehaviour {
             VideoEnding = GameObject.Find("EndVideo");
     }
 
+    public void EnableMenuSprite(bool b)
+    {
+        foreach (var a in MenuSprite)
+        {
+            a.enabled = b;
+        }
+    }
+
     public void GoToGame(int playerIndex)
     {
-        Debug.Log("Player" + playerIndex);  
-        GameObject obj = Instantiate(Resources.Load("Player" + playerIndex)) as GameObject;
-        obj.name = "Player" + playerIndex;
+        //Debug.Log("Player" + playerIndex);  
+        //GameObject obj = Instantiate(Resources.Load("Player" + playerIndex)) as GameObject;
+        //obj.name = "Player" + playerIndex;
 
-        Player = GameObject.Find("Player" + playerIndex);
-        PlayerAnimator = Player.GetComponent<Animator>();
-
+        //Player = GameObject.Find("Player" + playerIndex);
+        //PlayerAnimator = Player.GetComponent<Animator>();
+        _playerIndex = playerIndex;
         DOTween.To(() => MenuCanvas.GetComponent<CanvasGroup>().alpha, x => MenuCanvas.GetComponent<CanvasGroup>().alpha = x, 0, 2f).OnComplete(EnableGameCanvas);
     }
 
@@ -75,7 +97,9 @@ public class GameManager : MonoBehaviour {
       //  cam.enabled = false;
     }
 
-    private void EnableGameCanvas()
+    public int _playerIndex = 0;
+
+        private void EnableGameCanvas()
     {
         MenuCanvas.enabled = false;
         GameCanvas.enabled = true;
@@ -83,8 +107,16 @@ public class GameManager : MonoBehaviour {
         levelTimeLimit = 21f;
         timeIsRunningOut = true;
       //  cam.enabled = true;
+        EnableMenuSprite(false);
         EnableLevelSprites();
         ChangeLevelMusic();
+        Debug.Log("Player" + _playerIndex);
+        GameObject obj = Instantiate(Resources.Load("Player" + _playerIndex)) as GameObject;
+        obj.name = "Player" + _playerIndex;
+
+        Player = GameObject.Find("Player" + _playerIndex);
+        PlayerAnimator = Player.GetComponent<Animator>();
+
     }
 
     public void QuitGame()
@@ -281,13 +313,18 @@ public class GameManager : MonoBehaviour {
             }
             else if (currentLevel == 1)
             {
-               
+                Debug.Log("Electrocution");
+                PlayerAnimator.SetBool("Electrocuted", true);
+                Invoke("GameOver", 3f);
+
             }
             else if (currentLevel == 2)
             {
                 outRunAnimator.SetBool("OutRunning", true);
                 //kissBarbieAnimator.SetBool("Kissing", true);
                // Invoke("DisableKissingBarbie", 1.5f);
+                //Invoke("GameOver", 3f);
+                //Invoke("RestartGame", 2f);
                 Invoke("RestartGame", 5f);
             }
             else if (currentLevel == 3)
@@ -299,15 +336,36 @@ public class GameManager : MonoBehaviour {
             }
             else if (currentLevel == 4)
             {
-
+                Debug.Log("Sprite barbie tueuse + perso tombe");
+                barbitchAnimator.SetBool("Barbitch", true);
+                Invoke("GameOver", 3f);
             }
             else if (currentLevel == 5)
             {
+                VideoFenetre.SetActive(true);
+                var lol = VideoFenetre.GetComponent<lolili>();
+                lol.InitLeBordel();
 
+                if (lol.duration != 0 && !lol.once)
+                {
+                    Destroy(Player);
+                    DisableAllLevelSprites();
+                    lol.Play();
+                    Invoke("RestartGame", lol.duration);
+                }
             }
             else if (currentLevel == 6)
             {
-
+                Debug.Log("multiplication gremelins");
+                foreach (var g in multipleGremlins)
+                {
+                    g.SetActive(true);
+                }
+                Invoke("GameOver", 3f);
+            }
+            else if (currentLevel == 7)
+            {
+                GameOver();
             }
         }
         #endregion
@@ -320,30 +378,51 @@ public class GameManager : MonoBehaviour {
             }
             else if (currentLevel == 1)
             {
-
+                GoToNextLevel();
             }
             else if (currentLevel == 2)
             {
                // Pousse Barbie
                 Debug.Log("Pousse Barbie");
-                RestartGame();
+                Invoke("GameOver", 3f);
+               
+                //RestartGame();
             
             }
             else if (currentLevel == 3)
             {
-
+                Debug.Log("Boomerang");
+                PlayerAnimator.SetBool("Boomerang", true);
+                boomAnimator.SetBool("Boom", true);
+                Invoke("TeteDecoupe", 2f);
+                Invoke("GameOver", 3f);
             }
             else if (currentLevel == 4)
             {
-
+                Debug.Log("Kameamea");
+                kameameaAnimator.SetBool("Kameameaing", true);
+                Invoke("DisableAllLevelSprites", 2.2f);
+                Invoke("GoToNextLevel", 2.2f);
             }
             else if (currentLevel == 5)
             {
+                // Money coming
+                foreach (var m in multipleMonkeys)
+                {
+                    m.SetActive(true);
+                }
+                Invoke("GameOver", 3f);
 
             }
             else if (currentLevel == 6)
             {
-
+                // resize gremlins
+                Gremelins.gameObject.transform.DOScale(new Vector3(800f, 800f, 800f), 3f);
+                Invoke("GameOver", 3f);
+            }
+            else if (currentLevel == 7)
+            {
+                Application.LoadLevel("retoto");
             }
         }
         #endregion
@@ -352,6 +431,9 @@ public class GameManager : MonoBehaviour {
         {
             if (currentLevel == 0)
             {
+                DisableAllLevelSprites();
+                LooserObj.SetActive(true);
+                Invoke("RestartGame", 3f);
                // GoToNextLevel();
             }
             else if (currentLevel == 1)
@@ -367,20 +449,23 @@ public class GameManager : MonoBehaviour {
             else if (currentLevel == 3)
             {
                 bigFireAnimator.SetBool("OnFire", true);
-                Invoke("RestartGame", 3f);
+                Invoke("GameOver", 3f);
+            //    Invoke("RestartGame", 2f);
+               
             }
             else if (currentLevel == 4)
             {
                 snakeAnimator.SetBool("ShowSnake", true);
-                Invoke("RestartGame", 3f);
+                Invoke("GameOver", 3f);
+             //   Invoke("RestartGame", 2f);
             }
             else if (currentLevel == 5)
             {
-
+                GoToNextLevel();
             }
             else if (currentLevel == 6)
             {
-
+                GoToNextLevel();
             }
         }
         #endregion
@@ -391,23 +476,31 @@ public class GameManager : MonoBehaviour {
         if (levelTimeLimit <= 0)
         {
             timeIsRunningOut = false;
-            Debug.Log("FUCK !!! You Lose");
-            VideoEnding.SetActive(true);
-            var lol = VideoEnding.GetComponent<lolili>();
-            lol.InitLeBordel();
-            if (lol.duration != 0 && !lol.once)
-            {
-                Destroy(Player);
-                DisableAllLevelSprites();
-                lol.Play();
-                Invoke("RestartGame", lol.duration);
-            }
+            DisableAllLevelSprites();
+            TooLateObject.SetActive(true);
+            Invoke("RestartGame", 3f);
+           // Debug.Log("FUCK !!! You Lose");
+          //  VideoEnding.SetActive(true);
+            //var lol = VideoEnding.GetComponent<lolili>();
+            //lol.InitLeBordel();
+            //if (lol.duration != 0 && !lol.once)
+            //{
+            //    Destroy(Player);
+            //    DisableAllLevelSprites();
+            //    lol.Play();
+            //    Invoke("RestartGame", lol.duration);
+            //}
             
                
           //  Application.LoadLevel("main");
         }
     }
 
+    private void TeteDecoupe()
+    {
+        PlayerAnimator.SetBool("Boomerang", false);
+        PlayerAnimator.SetBool("Decoupe", true);
+    }
 
     private void DisableKissingBarbie()
     {
@@ -419,7 +512,15 @@ public class GameManager : MonoBehaviour {
         ghostBusterAnimator.SetBool("CalledGhostBuster", false);
     }
 
-   
+
+    public void GameOver()
+    {
+        Destroy(Player);
+        DisableAllLevelSprites();
+         GameOverObj.SetActive(true);
+        Invoke("RestartGame", 3f);
+    }
+
     public void RestartGame()
     {
         Application.LoadLevel("main");
